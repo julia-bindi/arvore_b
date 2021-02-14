@@ -32,7 +32,7 @@ class Pagina:
         for i in range(1, len(self.r)):
             ret += ", "
             ret += str(self.r[i].val)
-        ret += "]"
+        ret += "]" + " - Tamanho desta pagina: " + str(self.n)
         return ret
 
     def atualiza_n(self):
@@ -65,10 +65,18 @@ class ArvoreB:
 
     def __str__(self):
         ret = "Arvore b com m = " + str(self.m) + "\n"
-        ret += self.raiz.__str__() + " - Tamanho desta pagina: " + str(self.raiz.n)
-        for i in range(len(self.raiz.p)):
-            ret += "\n" + self.raiz.p[i].__str__() + " - Tamanho desta pagina: " + str(self.raiz.p[i].n)
         return ret
+
+    def imprime(self):
+        print(self.__str__())
+        print(self.raiz.__str__())
+        for i in range(len(self.raiz.p)):
+            self._imprime(self.raiz.p[i])
+
+    def _imprime(self, pag:Pagina):
+        print(pag.__str__())
+        for i in range(len(pag.p)):
+            self._imprime(pag.p[i])
 
     def insere(self, reg:Item):
         if self.raiz.n < self.mm and len(self.raiz.p) == 0:
@@ -102,7 +110,7 @@ class ArvoreB:
             pag.r.append(reg)
             pag.r.sort()  
             pag.atualiza_n()
-        elif len(pag.p) == 0:
+        elif not pag.raiz and len(pag.p) == 0:
             pag.r.append(reg)
             pag.r.sort()
             pag.atualiza_n()
@@ -128,7 +136,7 @@ class ArvoreB:
                 elif reg > pag.r[i]:
                     self._insere(reg, pag.p[i+1])
     
-    def remover(self, reg:item):
+    def remover(self, reg:Item):
         pag = self.pesquisa(reg)
         if pag.n > 1:
             for i in range(pag.n):

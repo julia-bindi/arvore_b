@@ -14,7 +14,7 @@ def teste_insere():
 	arvore.insere(i3)
 	arvore.insere(i4)
 	arvore.insere(i5)
-	print(arvore)
+	arvore.imprime()
 
 def teste_pesquisa():
 	print("\nTESTE PESQUISA")
@@ -45,9 +45,9 @@ def teste_giroE():
 	arvore.insere(i3)
 	arvore.insere(i4)
 	arvore.insere(i5)
-	print(arvore)
+	arvore.imprime()
 	arvore.giro_esquerda(i2)
-	print(arvore)
+	arvore.imprime()
 
 def teste_giroD():
 	print("\nTESTE GIRO DIREITA")
@@ -62,15 +62,6 @@ def teste_giroD():
 	arvore.insere(i3)
 	arvore.insere(i4)
 	arvore.insere(i5)
-	print(arvore)
+	arvore.imprime()
 	arvore.giro_direita(i2)
-	print(arvore)
-
-def main():
-	teste_insere()
-	teste_pesquisa()
-	teste_giroE()
-	teste_giroD()
-
-if __name__ == '__main__':
-	main()
+	arvore.imprime()
