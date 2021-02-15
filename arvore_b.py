@@ -106,7 +106,7 @@ class ArvoreB:
             self._insere(reg, self.raiz)
 
     def _insere(self, reg:Item, pag:Pagina):
-        if not pag.raiz and pag.n < self.mm and pag.n > self.m and len(pag.p) == 0:
+        if not pag.raiz and pag.n < self.mm and pag.n >= self.m and len(pag.p) == 0:
             pag.r.append(reg)
             pag.r.sort()  
             pag.atualiza_n()
@@ -119,7 +119,7 @@ class ArvoreB:
             p2 = Pagina(self.mm)
             for i in range(self.m):
                 p1.r.append(pag.r[i])
-            for i in range(self.m+1, self.mm+1):
+            for i in range(self.m, self.mm+1):
                 p2.r.append(pag.r[i])
             for i in range(pag.n):
                 pag.r.pop()
@@ -138,7 +138,13 @@ class ArvoreB:
     
     def remover(self, reg:Item):
         pag = self.pesquisa(reg)
-        if pag.n > 1:
+        if pag.raiz and pag.n > 1 and len(pag.p) == 0:
+            for i in range(pag.n):
+                if pag.r[i] == reg:
+                    pag.r.pop(i)
+                    pag.atualiza_n()
+                    break
+        elif not pag.raiz and pag.n > pag.max_r/2 and len(pag.p) == 0:
             for i in range(pag.n):
                 if pag.r[i] == reg:
                     pag.r.pop(i)
