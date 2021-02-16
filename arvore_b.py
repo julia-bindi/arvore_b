@@ -1,4 +1,4 @@
-class Item:
+class Item:                                                          #Classe a ser inserido das páginas da árvore
     def __init__(self,val:int):
         self.val:int = val
 
@@ -15,9 +15,9 @@ class Item:
         return ret
 
     def compara(self, n):
-        return self.val-n
+        return self.val-n.val
 
-class Pagina:
+class Pagina:                                                        #Desrive o comportamento de uma página da árvore
     def __init__(self,mm):
             self.r:["Item"] = []
             self.max_r = mm
@@ -27,34 +27,50 @@ class Pagina:
             self.raiz:bool = False
     
     def __str__(self):
-        ret = "["
-        ret += str(self.r[0].val)
-        for i in range(1, len(self.r)):
-            ret += ", "
-            ret += str(self.r[i].val)
-        ret += "]" + " - Tamanho desta pagina: " + str(self.n)
-        return ret
+        if self.n > 0:
+            ret = "["
+            ret += str(self.r[0].val)
+            for i in range(1, len(self.r)):
+                ret += ", "
+                ret += str(self.r[i].val)
+            ret += "]" + " - Tamanho desta pagina: " + str(self.n)
+            return ret
+    
+    def __eq__(self, outro:"Pagina"):
+        for i in range(self.n):
+            if self.r[i] != outro.r[i]:
+                return False
+        return True
 
     def atualiza_n(self):
-        self.n = len(self.r)    
+        self.n = len(self.r)
 
-    def verifica(self) -> bool:
-        if self.raiz:
+    def verifica(self) -> bool:                                           #Faz uma chamada recursiva para verifica se a árvore 
+        if self.raiz:                                                     #está seguindo os padrões especificados
             if self.n <= self.max_r:
-                for i in self.p:
-                    if not self.p[i].verivica():
+                for i in range(len(self.p)):
+                    if not(self.p[i].verifica()):
                         return False
                 return True
             else:
                 return False
         else:
             if self.n <= self.max_r and self.n >= self.max_r/2:
-                for i in self.p:
-                    if not self.p[i].verivica():
+                for i in range(len(self.p)):
+                    if not(self.p[i].verifica()):
                         return False
                 return True
             else:
                 return False
+    
+    def procura(self) -> "Pagina":                                          #Retorna uma página que não esteja seguindo a regra de 
+        if not self.raiz and self.n < self.max_r/2:                       #su existência dentro de uma árvore do tipo b
+            return self
+        else:
+            for i in range(len(self.p)):
+                 ret = self.p[i].procura()
+                 if ret != None:
+                     return ret
 
 class ArvoreB:
     def __init__(self,m:int):
@@ -67,24 +83,24 @@ class ArvoreB:
         ret = "Arvore b com m = " + str(self.m) + "\n"
         return ret
 
-    def imprime(self):
+    def imprime(self):                                                    #Imprime toda a árvore
         print(self.__str__())
         print(self.raiz.__str__())
         for i in range(len(self.raiz.p)):
             self._imprime(self.raiz.p[i])
 
-    def _imprime(self, pag:Pagina):
+    def _imprime(self, pag:"Pagina"):
         print(pag.__str__())
         for i in range(len(pag.p)):
             self._imprime(pag.p[i])
 
-    def insere(self, reg:Item):
-        if self.raiz.n < self.mm and len(self.raiz.p) == 0:
-            self.raiz.r.append(reg)
-            self.raiz.r.sort()  
+    def insere(self, reg:"Item"):                                         #Insere um elemento do tipo Item na árvore
+        if self.raiz.n < self.mm and len(self.raiz.p) == 0:               #caso: inserção na raiz
+            self.raiz.r.append(reg)                                       #           ou
+            self.raiz.r.sort()                                            #      inserção em uma folha sem filhos
             self.raiz.atualiza_n()
-        elif len(self.raiz.p) == 0:
-            self.raiz.r.append(reg)
+        elif len(self.raiz.p) == 0:                                       #caso: inserção em uma folha porém estrapolando
+            self.raiz.r.append(reg)                                       #o número máximo de Itens
             self.raiz.r.sort()
             self.raiz.atualiza_n()
             termo_medio = self.raiz.r[self.m]
@@ -104,8 +120,10 @@ class ArvoreB:
             self.raiz.p.append(p2)
         else:
             self._insere(reg, self.raiz)
+        while not self.verifica():                                       #Reconstrução da árvore caso necessário
+            self.reconstruir()
 
-    def _insere(self, reg:Item, pag:Pagina):
+    def _insere(self, reg:"Item", pag:"Pagina"):
         if not pag.raiz and pag.n < self.mm and pag.n >= self.m and len(pag.p) == 0:
             pag.r.append(reg)
             pag.r.sort()  
@@ -119,7 +137,7 @@ class ArvoreB:
             p2 = Pagina(self.mm)
             for i in range(self.m):
                 p1.r.append(pag.r[i])
-            for i in range(self.m, self.mm+1):
+            for i in range(self.m+1, self.mm+1):
                 p2.r.append(pag.r[i])
             for i in range(pag.n):
                 pag.r.pop()
@@ -135,38 +153,95 @@ class ArvoreB:
                     self._insere(reg, pag.p[i])
                 elif reg > pag.r[i]:
                     self._insere(reg, pag.p[i+1])
+        while not self.verifica():
+            self.reconstruir()
     
-    def remover(self, reg:Item):
+    def remover(self, reg:"Item"):
         pag = self.pesquisa(reg)
-        if pag.raiz and pag.n > 1 and len(pag.p) == 0:
+        if pag.raiz and pag.n > 1 and len(pag.p) == 0:                      #Remoção de um item na raiz
             for i in range(pag.n):
                 if pag.r[i] == reg:
                     pag.r.pop(i)
                     pag.atualiza_n()
                     break
-        elif not pag.raiz and pag.n > pag.max_r/2 and len(pag.p) == 0:
+        elif not pag.raiz and pag.n > pag.max_r/2 and len(pag.p) == 0:      #Remoção de um item em uma página com mais de m Itens
             for i in range(pag.n):
                 if pag.r[i] == reg:
                     pag.r.pop(i)
                     pag.atualiza_n()
                     break
+        else:                                                               #Demais casos (necessitam de reconstrução)
+            pag.pop()
+            self.reconstruir()          
+        while not self.verifica():
+            self.reconstruir()
+
+    def reconstruir(self):                                                  #Reconstroi a árvore dentre os casos descritos
+        procurado = self.pai(None)                                          #nos slides teóricos 
+        giro = 0
+        if procurado != None:
+            for i in range(len(procurado.p)+1):
+                if procurado.p[i] == None:
+                    giro = 1
+                    break
+            if giro == 1:
+                if procurado.p[i-1].n > self.m:
+                    self.giro_direita(procurado.r[i-1])
+                elif  procurado.p[i+1].n > self.m:
+                    self.giro_esquerda(procurado.r[i])
+                else:
+                    self.reconstruir_m(procurado,i)
+        elif self.raiz.procura() != None:
+            pag = self.raiz.procura()
+            for i in range(len(procurado.p)+1):
+                if procurado.p[i] == pag:
+                    giro = 1
+                    break
+            if giro == 1:
+                if procurado.p[i-1].n > self.m:
+                    self.giro_direita(procurado.r[i-1])
+                elif  procurado.p[i+1].n > self.m:
+                    self.giro_esquerda(procurado.r[i])
+                else:
+                    self.reconstruir_m(procurado,i)
+
+
+    def reconstruir_m(self, pag:"Pagina", i:int):
+        if (pag.raiz and pag.n > 1) or (not pag.raiz and pag > self.m):
+            if i == pag.n:
+                for j in range(pag.p[i].n):
+                    pag.p[i-1].append(pag.p[i].r[j])
+                pag.p[i-1].append(pag.r[i-1])
+                pag.r.pop(i-1)
+                pag.p.pop(i)
+            else:
+                for j in range(pag.p[i].n):
+                    pag.p[i+1].append(pag.p[i].r[j])
+                pag.p[i+1].append(pag.r[i])
+                pag.r.pop(i)
+                pag.p.pop(i)
         else:
-            pass
-        
-    def pesquisa(self, reg:Item) -> Pagina:
+            pai = self.pai(pag)
+            for j in range(len(pai.p)):
+                if pai.p[j] == pag:
+                    break
+            self.reconstruir_m(pai,j)
+    
+
+    def pesquisa(self, reg:"Item") -> Pagina:                              #Retorna a página cujo item esppecificado está
         if reg in self.raiz.r:
             return self.raiz
         else:
             return self._pesquisa(reg, self.raiz)
 
-    def _pesquisa(self, reg:Item, pag:Pagina) -> Pagina:
+    def _pesquisa(self, reg:"Item", pag:"Pagina") -> Pagina:
         for i in range(len(pag.p)):
             if reg in pag.p[i].r:
                 return pag.p[i]
             else:
                 self._pesquisa(reg, pag.p[i])
 
-    def giro_esquerda(self, reg:Item):
+    def giro_esquerda(self, reg:"Item"):                                   #Realiza um movimento auxiliar na reconstruçao
         pag = self.pesquisa(reg)
         for i in range(pag.n):
             if pag.r[i] == reg:
@@ -182,7 +257,7 @@ class ArvoreB:
         pag.p[i+1].r.sort()
         pag.p[i+1].atualiza_n()
 
-    def giro_direita(self, reg:Item):
+    def giro_direita(self, reg:"Item"):                                   #Realiza um movimento auxiliar na reconstruçao
         pag = self.pesquisa(reg)
         for i in range(pag.n):
             if pag.r[i] == reg:
@@ -197,85 +272,26 @@ class ArvoreB:
         pag.p[i].r.sort()
         pag.p[i].atualiza_n()
 
-    def verifica(self) -> bool:
-        return self.raiz.verifica()
+    def pai(self,pag:"Pagina") -> Pagina:                                 #Retorna a página pai da passada como parâmetro
+        if pag in self.raiz.p:
+            return self.raiz
+        else:
+            for i in range(len(self.raiz.p)):
+                return self.pai(self.raiz.p[i])
 
-#    def pesquisa(self, reg:Item, ap:Pagina) -> Item:
-#        if ap is None:
-#            return None
-#        else:
-#            i = 0
-#            while (i < ap.n-1) and (reg.compara(ap.r[i]) > 0):
-#                i += 1
-#            if reg.compara(ap.r[i] == 0):
-#               return ap.r[i]
-#            elif reg.compara(ap.r[i]) < 0:
-#                return self.pesquisa(reg, ap.p[i])
-#            else:
-#                return self.pesquisa(reg, ap.p[i+1])
-#    
-#    def insereNaPagina(self, ap:Pagina, reg:Item, apDir:Pagina):
-#        k:int = ap.n-1
-#        while (k >= 0) and reg.compara(ap.r(k) < 0):
-#            ap.r[k+1] = ap.r[k]
-#            ap.p[k+2] = ap.p[k+1]
-#            k -= 1
-#        ap.r[k+1] = reg
-#        ap.p[k+2] = apDir
-#        ap.n += 1
-#    
-#    def insere(self, reg:Item):
-#        regRetorno:list[Item] = []
-#        cresceu:list[bool] = []
-#        apRetorno:Pagina = self.insere2(reg, self.raiz, regRetorno, cresceu)
-#        if cresceu[0]:
-#            apTemp = Pagina(self.mm)
-#            apTemp.r[0] = regRetorno[0]
-#            apTemp.p[0] = self.raiz
-#            apTemp.p[1] = apRetorno
-#            self.raiz = apTemp
-#        else:
-#            self.raiz = apRetorno
-#    
-#    def insere2(self, reg:Item,ap:Pagina,regRetorno:list[Item],cresceu:list[bool]) -> Pagina:
-#        apRetorno:Pagina = None
-#        if ap is None:
-#            cresceu[0] = True
-#            regRetorno[0] = reg
-#        else:
-#            i:int = 0
-#            while (i < ap.n-1) and (reg.compara(ap.r[i]) > 0):
-#                i += 1
-#            if reg.compara(ap.r[i]) == 0:
-#                print("Erro: Registro ja existente")
-#                cresceu[0] = False
-#            else:
-#                if reg.compara(ap.r[i]) > 0:
-#                    i += 1
-#                apRetorno = self.insere2(reg, ap.p[i], regRetorno, cresceu)
-#                if cresceu[0]:
-#                    if ap.n < self.mm:
-#                        self.insereNaPagina(ap, regRetorno[0], apRetorno)
-#                        cresceu[0] = False
-#                        apRetorno = ap
-#                    else:
-#                        apTemp = Pagina(self.mm)
-#                        apTemp.p[0] = None
-#                        if i <= self.m:
-#                            self.insereNaPagina(apTemp, ap.r[self.mm-1], ap.p[self.mm])
-#                            ap.n -= 1
-#                            self.insereNaPagina(ap, regRetorno[0], apRetorno)
-#                        else:
-#                            self.insereNaPagina(apTemp, regRetorno[0], apRetorno)
-#                        for j in range(self.m+1, self.mm):
-#                            self.insereNaPagina(apTemp, ap.r[j], ap.p[j+1])
-#                            ap.p[j+1] = None
-#                        ap.n = self.m
-#                        apTemp.p[0] = apTemp.p[self.m+1]
-#                        regRetorno[0] = ap.r[self.m]
-#                        apRetorno = apTemp
-#        if cresceu[0]:
-#            return apRetorno
-#        else:
-#            return ap
-#
+    def subir_item(self,reg:"Item"):                                      #Realiza um movimento auxiliar na reconstruçao
+        pag = self.pesquisa(reg)
+        print(pag)
+        p_pag = self.pai(pag)
+        i = 0
+        for i in range(pag.n):
+            if pag.r[i] == reg:
+                break
+        p_pag.r.append(pag.r[i])
+        p_pag.r.sort()
+        p_pag.atualiza_n()
+        pag.r.pop(i)
+        pag.atualiza_n()
+
+    def verifica(self) -> bool:                                          #Realiza a verificação da árvore
+        return self.raiz.verifica()
